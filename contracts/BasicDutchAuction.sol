@@ -7,7 +7,7 @@ contract BasicDutchAuction {
     uint256 public initialPrice;
     uint256 public auctionStartTime;
     uint256 public auctionEndTime;
-    uint256 public currentPrice;
+    uint256 private currentPrice;
     bool public auctionEnded;
 
     event RefundInfo(address indexed bidder, uint256 refundAmount, uint256 contractBalance);
@@ -29,13 +29,31 @@ contract BasicDutchAuction {
         currentPrice = initialPrice;
         auctionEnded = false;
     }
+    
+  
+
+  function getCurrentPrice() external view returns (uint256) {
+    uint256 blocksPassed = block.number - auctionStartTime;
+    if (blocksPassed >= numBlocksAuctionOpen) {
+        return reservePrice;
+    } else {
+        return initialPrice - blocksPassed * offerPriceDecrement;
+    }
+}
+
+
 
     function bid() external payable {
         require(!auctionEnded, "Auction has already ended");
-        require(msg.value >= currentPrice, "Bid amount is less than the current price");
-
+        if(block.number > auctionEndTime){
+        	auctionEnded = true;
+        }
+        require(block.number <= auctionEndTime, "Auction has exceeded the maximum number of blocks");
+        require(msg.value >= initialPrice - (block.number - auctionStartTime + 1)*offerPriceDecrement, "Bid amount is less than the current price");
         seller.transfer(currentPrice);
         auctionEnded = true;
+
+
     }
 }
 

@@ -22,22 +22,22 @@
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Statements</span>
-        <span class='fraction'>3/3</span>
+        <span class='fraction'>9/9</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Branches</span>
-        <span class='fraction'>4/4</span>
+        <span class='fraction'>10/10</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Functions</span>
-        <span class='fraction'>2/2</span>
+        <span class='fraction'>3/3</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Lines</span>
-        <span class='fraction'>13/13</span>
+        <span class='fraction'>20/20</span>
       </div>
     </div>
   </div>
@@ -84,7 +84,25 @@
 39
 40
 41
-42</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -103,25 +121,43 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">9×</span>
-<span class="cline-any cline-yes">9×</span>
-<span class="cline-any cline-yes">9×</span>
-<span class="cline-any cline-yes">9×</span>
+<span class="cline-any cline-yes">15×</span>
+<span class="cline-any cline-yes">15×</span>
+<span class="cline-any cline-yes">15×</span>
+<span class="cline-any cline-yes">15×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">9×</span>
-<span class="cline-any cline-yes">9×</span>
+<span class="cline-any cline-yes">15×</span>
+<span class="cline-any cline-yes">15×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">9×</span>
-<span class="cline-any cline-yes">9×</span>
-<span class="cline-any cline-yes">9×</span>
+<span class="cline-any cline-yes">15×</span>
+<span class="cline-any cline-yes">15×</span>
+<span class="cline-any cline-yes">15×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">18×</span>
+<span class="cline-any cline-yes">15×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">15×</span>
+<span class="cline-any cline-yes">14×</span>
+<span class="cline-any cline-yes">3×</span>
 <span class="cline-any cline-yes">3×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2×</span>
-<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -134,7 +170,7 @@ contract BasicDutchAuction {
     uint256 public initialPrice;
     uint256 public auctionStartTime;
     uint256 public auctionEndTime;
-    uint256 public currentPrice;
+    uint256 private currentPrice;
     bool public auctionEnded;
 &nbsp;
     event RefundInfo(address indexed bidder, uint256 refundAmount, uint256 contractBalance);
@@ -156,13 +192,31 @@ contract BasicDutchAuction {
         currentPrice = initialPrice;
         auctionEnded = false;
     }
+    
+  
+&nbsp;
+  function getCurrentPrice() external view returns (uint256) {
+    uint256 blocksPassed = block.number - auctionStartTime;
+    if (blocksPassed &gt;= numBlocksAuctionOpen) {
+        return reservePrice;
+    } else {
+        return initialPrice - blocksPassed * offerPriceDecrement;
+    }
+}
+&nbsp;
+&nbsp;
 &nbsp;
     function bid() external payable {
         require(!auctionEnded, "Auction has already ended");
-        require(msg.value &gt;= currentPrice, "Bid amount is less than the current price");
-&nbsp;
+        if(block.number &gt; auctionEndTime){
+        	auctionEnded = true;
+        }
+        require(block.number &lt;= auctionEndTime, "Auction has exceeded the maximum number of blocks");
+        require(msg.value &gt;= initialPrice - (block.number - auctionStartTime + 1)*offerPriceDecrement, "Bid amount is less than the current price");
         seller.transfer(currentPrice);
         auctionEnded = true;
+&nbsp;
+&nbsp;
     }
 }
 &nbsp;
@@ -172,7 +226,7 @@ contract BasicDutchAuction {
 </div><!-- /wrapper -->
 <div class='footer quiet pad2 space-top1 center small'>
   Code coverage
-  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Sun May 28 2023 04:55:58 GMT-0400 (Eastern Daylight Time)
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Tue Jun 06 2023 20:30:56 GMT-0400 (Eastern Daylight Time)
 </div>
 </div>
 <script src="../prettify.js"></script>

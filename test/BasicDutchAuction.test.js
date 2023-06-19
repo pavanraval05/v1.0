@@ -1,4 +1,3 @@
-
 // Import the necessary modules and libraries for testing
 const { ethers } = require("hardhat");
 const { expect } = require("chai");
@@ -15,7 +14,6 @@ describe("BasicDutchAuction", function () {
     [seller, bidder1, bidder2] = await ethers.getSigners();
 
     
-    //await ethers.provider.send("hardhat_setBalance", [seller.address, ethers.utils.parseEther("10")]);
     
     basicDutchAuction = await BasicDutchAuction.deploy(
       ethers.utils.parseEther("1"),  // Reserve price: 1 ether
@@ -57,7 +55,7 @@ describe("BasicDutchAuction", function () {
     const initialPrice = await basicDutchAuction.initialPrice();
     expect(initialPrice).to.equal(ethers.utils.parseEther("1.9"));
 
-    expect(await basicDutchAuction.currentPrice()).to.equal(ethers.utils.parseEther("1.9"));
+    expect(await basicDutchAuction.getCurrentPrice()).to.equal(ethers.utils.parseEther("1.9"));
     expect(await basicDutchAuction.auctionEnded()).to.equal(false);
   });
 
@@ -96,6 +94,36 @@ it("should allow a bid greater than or equal to the current price", async functi
 //    const bidder2Balance = await ethers.provider.getBalance(bidder2.address);
     expect(await ethers.provider.getBalance(seller.address)).to.equal(ethers.utils.parseEther("11.9"));
   });
+  
+  it("should allow bidding within the auction duration", async function () {
+  // Bidder1 submits a bid equal to the current price
+  expect(await ethers.provider.getBalance(seller.address)).to.equal(ethers.utils.parseEther("10"));
+    expect(await ethers.provider.getBalance(bidder1.address)).to.equal(ethers.utils.parseEther("10"));
+    expect(await ethers.provider.getBalance(bidder2.address)).to.equal(ethers.utils.parseEther("10"));
+  await basicDutchAuction.connect(bidder1).bid({ value: ethers.utils.parseEther("1.9") });
+  expect(await basicDutchAuction.auctionEnded()).to.equal(true);
+
+  // Bidder2 tries to submit a bid less than the current price
+  await expect(basicDutchAuction.connect(bidder2).bid({ value: ethers.utils.parseEther("1.8") }))
+    .to.be.revertedWith("Auction has already ended");
+});
+it("Exceeded the maximum number of blocks", async()=>{
+	await expect(basicDutchAuction.connect(bidder1).bid({ value: ethers.utils.parseEther("0") })).to.be.revertedWith("Bid amount is less than the current price");
+	await expect(basicDutchAuction.connect(bidder1).bid({ value: ethers.utils.parseEther("0") })).to.be.revertedWith("Bid amount is less than the current price");
+	await expect(basicDutchAuction.connect(bidder1).bid({ value: ethers.utils.parseEther("0") })).to.be.revertedWith("Bid amount is less than the current price");
+	await expect(basicDutchAuction.connect(bidder1).bid({ value: ethers.utils.parseEther("0") })).to.be.revertedWith("Bid amount is less than the current price");
+	await expect(basicDutchAuction.connect(bidder1).bid({ value: ethers.utils.parseEther("0") })).to.be.revertedWith("Bid amount is less than the current price");
+	await expect(basicDutchAuction.connect(bidder1).bid({ value: ethers.utils.parseEther("0") })).to.be.revertedWith("Bid amount is less than the current price");
+	await expect(basicDutchAuction.connect(bidder1).bid({ value: ethers.utils.parseEther("0") })).to.be.revertedWith("Bid amount is less than the current price");
+	await expect(basicDutchAuction.connect(bidder1).bid({ value: ethers.utils.parseEther("0") })).to.be.revertedWith("Bid amount is less than the current price");
+	await expect(basicDutchAuction.connect(bidder1).bid({ value: ethers.utils.parseEther("0") })).to.be.revertedWith("Bid amount is less than the current price");
+	await expect(basicDutchAuction.connect(bidder1).bid({ value: ethers.utils.parseEther("0") })).to.be.revertedWith("Bid amount is less than the current price");
+	await expect(basicDutchAuction.connect(bidder1).bid({ value: ethers.utils.parseEther("0") })).to.be.revertedWith("Auction has exceeded the maximum number of blocks");
+	expect(await basicDutchAuction.getCurrentPrice()).to.equal(ethers.utils.parseEther("1.0"));
+	
+	
 });
 
 
+
+});
